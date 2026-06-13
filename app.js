@@ -8,6 +8,7 @@ let state = {
     budgetLimit: 25,
     calorieGoal: 2000,
     useDemoMode: true,
+    currency: 'usd',
     
     // Active Data
     currentPlan: null,
@@ -19,6 +20,27 @@ let state = {
         completedGroceries: {} // itemName -> boolean
     }
 };
+
+const currencyConfig = {
+    usd: { symbol: '$', rate: 1.0, name: 'USD' },
+    inr: { symbol: '₹', rate: 83.0, name: 'INR' },
+    jpy: { symbol: '¥', rate: 155.0, name: 'JPY' }
+};
+
+function formatCost(usdCost) {
+    const config = currencyConfig[state.currency];
+    const converted = usdCost * config.rate;
+    if (state.currency === 'jpy') {
+        return `${config.symbol}${Math.round(converted)}`;
+    }
+    return `${config.symbol}${converted.toFixed(2)}`;
+}
+
+function updateCurrencyDisplays() {
+    const symbol = currencyConfig[state.currency].symbol;
+    document.getElementById("budget-currency-label").innerText = symbol;
+    document.getElementById("budget-currency-symbol").innerText = symbol;
+}
 
 // Loading Screen Tip Rotator
 const loadingTips = [
@@ -139,6 +161,25 @@ function loadCachedData() {
         document.getElementById("use-demo-mode").checked = false;
     }
 
+    const savedCurrency = localStorage.getItem("culinary_sync_currency");
+    if (savedCurrency) {
+        state.currency = savedCurrency;
+        document.getElementById("currency-select").value = savedCurrency;
+    } else {
+        state.currency = 'usd';
+    }
+    updateCurrencyDisplays();
+
+    const savedTheme = localStorage.getItem("culinary_sync_theme");
+    const themeToggleIcon = document.querySelector("#theme-toggle i");
+    if (savedTheme === "light") {
+        document.body.classList.add("light-theme");
+        if (themeToggleIcon) themeToggleIcon.setAttribute("data-lucide", "moon");
+    } else {
+        document.body.classList.remove("light-theme");
+        if (themeToggleIcon) themeToggleIcon.setAttribute("data-lucide", "sun");
+    }
+
     const savedPlan = localStorage.getItem("culinary_sync_plan");
     const savedProgress = localStorage.getItem("culinary_sync_progress");
     const savedDayDesc = localStorage.getItem("culinary_sync_day_desc");
@@ -190,6 +231,8 @@ function initUI() {
     const apiKeyInput = document.getElementById("api-key");
     const useDemoCheckbox = document.getElementById("use-demo-mode");
     const findSubBtn = document.getElementById("find-sub-btn");
+    const currencySelect = document.getElementById("currency-select");
+    const themeToggle = document.getElementById("theme-toggle");
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -229,6 +272,42 @@ function initUI() {
         if (e.key === "Enter") {
             e.preventDefault();
             handleCustomSubstitution();
+        }
+    });
+
+    currencySelect.addEventListener("change", (e) => {
+        const oldCurrency = state.currency;
+        const newCurrency = e.target.value;
+        const oldRate = currencyConfig[oldCurrency].rate;
+        const newRate = currencyConfig[newCurrency].rate;
+        
+        const currentBudgetVal = parseFloat(document.getElementById("budget-limit").value);
+        if (currentBudgetVal) {
+            const budgetInUSD = currentBudgetVal / oldRate;
+            const convertedBudget = Math.round(budgetInUSD * newRate);
+            document.getElementById("budget-limit").value = convertedBudget;
+            state.budgetLimit = convertedBudget;
+        }
+        
+        state.currency = newCurrency;
+        localStorage.setItem("culinary_sync_currency", state.currency);
+        updateCurrencyDisplays();
+        
+        if (state.currentPlan) {
+            renderDashboard();
+        }
+    });
+
+    themeToggle.addEventListener("click", () => {
+        const body = document.body;
+        const isLight = body.classList.toggle("light-theme");
+        localStorage.setItem("culinary_sync_theme", isLight ? "light" : "dark");
+        
+        // Update theme toggle icon
+        const icon = document.querySelector("#theme-toggle i");
+        if (icon) {
+            icon.setAttribute("data-lucide", isLight ? "moon" : "sun");
+            lucide.createIcons();
         }
     });
 }
@@ -446,7 +525,7 @@ function renderDashboard() {
 
     // Update Limits
     document.getElementById("calories-target").innerText = state.calorieGoal;
-    document.getElementById("budget-limit-display").innerText = state.budgetLimit.toFixed(2);
+    document.getElementById("budget-limit-display").innerText = formatCost(state.budgetLimit / currencyConfig[state.currency].rate);
 
     // Render Components
     renderMeals();
@@ -500,7 +579,7 @@ function renderMeals() {
                     <div class="meal-info-pills">
                         <span class="info-pill"><i data-lucide="flame"></i> ${meal.calories} kcal</span>
                         <span class="info-pill"><i data-lucide="clock"></i> Prep: ${meal.prepTime}</span>
-                        <span class="info-pill"><i data-lucide="dollar-sign"></i> Est: $${meal.costEstimate.toFixed(2)}</span>
+                        <span class="info-pill"><i data-lucide="dollar-sign"></i> Est: ${formatCost(meal.costEstimate)}</span>
                     </div>
                     <div class="toggle-arrow">
                         <i data-lucide="chevron-down"></i>
@@ -625,7 +704,7 @@ function renderGroceryList() {
     
     // Calculate total cost
     const totalCost = groceries.reduce((sum, item) => sum + (item.estimatedCost || 0), 0);
-    document.getElementById("grocery-total-cost").innerText = `Est: $${totalCost.toFixed(2)}`;
+    document.getElementById("grocery-total-cost").innerText = `Est: ${formatCost(totalCost)}`;
 
     // Group groceries by Category
     const groups = {};
@@ -653,7 +732,7 @@ function renderGroceryList() {
                                 </label>
                                 <span class="grocery-name">${item.item}</span>
                             </div>
-                            <span class="grocery-cost">$${item.estimatedCost.toFixed(2)}</span>
+                            <span class="grocery-cost">${formatCost(item.estimatedCost)}</span>
                         </div>
                     `;
                 }).join('')}
@@ -739,19 +818,19 @@ function updateProgressMetrics() {
     
     // In grocery list, estimate buying costs
     const groceries = state.currentPlan.groceryList || [];
-    const groceryLimit = state.budgetLimit;
+    const groceryLimitUSD = state.budgetLimit / currencyConfig[state.currency].rate;
     const totalGroceriesCost = groceries.reduce((sum, item) => sum + item.estimatedCost, 0);
 
-    document.getElementById("budget-spent").innerText = `$${dailyMealsCost.toFixed(2)}`;
+    document.getElementById("budget-spent").innerText = formatCost(dailyMealsCost);
     
-    const budgetPercent = Math.min((dailyMealsCost / groceryLimit) * 100, 100);
+    const budgetPercent = Math.min((dailyMealsCost / groceryLimitUSD) * 100, 100);
     const budgetProgressBar = document.getElementById("budget-progress-bar");
     budgetProgressBar.style.width = `${budgetPercent}%`;
 
     const budgetStatusBadge = document.getElementById("budget-status-badge");
     const budgetAnalysis = state.currentPlan.budgetAnalysis || {};
     
-    if (dailyMealsCost <= groceryLimit) {
+    if (dailyMealsCost <= groceryLimitUSD) {
         budgetStatusBadge.innerText = "Under Budget";
         budgetStatusBadge.className = "badge badge-success";
         budgetProgressBar.className = "progress-bar bg-green";
@@ -763,7 +842,10 @@ function updateProgressMetrics() {
     
     // Show AI Notes
     const notesElement = document.getElementById("budget-notes-text");
-    notesElement.innerText = budgetAnalysis.notes || `Portions average out to $${dailyMealsCost.toFixed(2)}. Total ingredients cost is $${totalGroceriesCost.toFixed(2)}.`;
+    notesElement.innerText = budgetAnalysis.notes || `Portions average out to ${formatCost(dailyMealsCost)}. Total ingredients cost is ${formatCost(totalGroceriesCost)}.`;
+
+    // Update display limit
+    document.getElementById("budget-limit-display").innerText = formatCost(groceryLimitUSD);
 
     // 3. To-Do progress indicators
     let totalStepsCount = 0;

@@ -24,6 +24,9 @@
                     <h1>CulinarySync<span>AI</span></h1>
                     <p>Smart Cooking To-Do</p>
                 </div>
+                <button type="button" id="theme-toggle" class="btn-theme-toggle" aria-label="Toggle Theme">
+                    <i data-lucide="sun"></i>
+                </button>
             </div>
 
             <form id="generator-form" class="generator-form">
@@ -59,14 +62,22 @@
                             <option value="gluten-free">Gluten Free</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="currency-select">Currency</label>
+                        <select id="currency-select">
+                            <option value="usd">USD ($)</option>
+                            <option value="inr">INR (₹)</option>
+                            <option value="jpy">JPY (¥)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="budget-limit">Budget Limit ($)</label>
+                        <label for="budget-limit">Budget Limit (<span id="budget-currency-label">$</span>)</label>
                         <div class="input-with-icon">
-                            <i class="field-icon">$</i>
-                            <input type="number" id="budget-limit" value="25" min="5" max="150" step="1">
+                            <span class="field-icon" id="budget-currency-symbol">$</span>
+                            <input type="number" id="budget-limit" value="25" min="1" max="15000" step="1">
                         </div>
                     </div>
                     <div class="form-group">
@@ -207,7 +218,7 @@
                                 <div id="budget-progress-bar" class="progress-bar bg-green" style="width: 0%"></div>
                             </div>
                             <div class="budget-limits">
-                                <span>Limit: $<span id="budget-limit-display">25.00</span></span>
+                                <span>Limit: <span id="budget-limit-display">$25.00</span></span>
                                 <span id="budget-status-badge" class="badge badge-success">Under Budget</span>
                             </div>
                         </div>
