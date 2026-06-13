@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CulinarySync AI - Cooking To-Do & Meal Planner</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="chef-hat"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>CulinarySync<span>AI</span></h1>
+                    <p>Smart Cooking To-Do</p>
+                </div>
+            </div>
+
+            <form id="generator-form" class="generator-form">
+                <div class="form-group">
+                    <label for="api-key">
+                        <span>Gemini API Key</span>
+                        <span class="tooltip" title="Your key is saved locally in your browser and is only sent directly to Google Gemini API."><i data-lucide="help-circle"></i></span>
+                    </label>
+                    <div class="input-with-icon">
+                        <i data-lucide="key" class="field-icon"></i>
+                        <input type="password" id="api-key" placeholder="AIzaSy..." autocomplete="off">
+                    </div>
+                    <div class="api-status-hint">
+                        <span>No key? Check "Demo Mode" below to try it instantly.</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="day-desc">Describe your day</label>
+                    <textarea id="day-desc" rows="3" placeholder="e.g., A busy workday, gym workout at 6 PM, need high-protein and quick dinners..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="diet-pref">Dietary Type</label>
+                        <select id="diet-pref">
+                            <option value="any">Any Diet</option>
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="vegan">Vegan</option>
+                            <option value="keto">Keto</option>
+                            <option value="high-protein">High Protein</option>
+                            <option value="low-carb">Low Carb</option>
+                            <option value="gluten-free">Gluten Free</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="budget-limit">Budget Limit ($)</label>
+                        <div class="input-with-icon">
+                            <i class="field-icon">$</i>
+                            <input type="number" id="budget-limit" value="25" min="5" max="150" step="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="calorie-goal">Calorie Goal (kcal)</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="target" class="field-icon"></i>
+                            <input type="number" id="calorie-goal" value="2000" min="1000" max="5000" step="50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="use-demo-mode" checked>
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Run in Demo Mode (No API key needed)</span>
+                    </label>
+                </div>
+
+                <button type="submit" id="generate-btn" class="btn btn-primary btn-glow">
+                    <i data-lucide="sparkles"></i>
+                    <span>Generate Cooking Plan</span>
+                </button>
+            </form>
+
+            <div class="sidebar-footer">
+                <p>CulinarySync AI &copy; 2026</p>
+                <div class="footer-links">
+                    <a href="#" id="reset-data">Clear Cache</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Dashboard -->
+        <main class="main-content">
+            <!-- Empty State Overlay -->
+            <div id="empty-state" class="empty-state">
+                <div class="empty-card">
+                    <div class="empty-icon-ring">
+                        <i data-lucide="chef-hat"></i>
+                    </div>
+                    <h2>Welcome to CulinarySync AI</h2>
+                    <p>Enter details about your schedule, diet, budget, and calorie goals on the left. The AI will design a custom meal plan, budget analysis, substitution list, and structured cooking checklists tailored for your day.</p>
+                    <div class="empty-actions">
+                        <button id="quick-demo-btn" class="btn btn-secondary">
+                            <i data-lucide="play-circle"></i>
+                            <span>Load Demo Plan</span>
+                        </button>
+                    </div>
+                    <div class="features-grid">
+                        <div class="feature-item">
+                            <div class="feat-icon"><i data-lucide="utensils"></i></div>
+                            <h3>Smart Meal Schedule</h3>
+                            <p>Daily meal schedule with tailored calories.</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feat-icon"><i data-lucide="list-todo"></i></div>
+                            <h3>Cooking To-Do</h3>
+                            <p>Step-by-step checklist for each recipe.</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feat-icon"><i data-lucide="dollar-sign"></i></div>
+                            <h3>Budget Logic</h3>
+                            <p>Auto estimates and affordability checks.</p>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feat-icon"><i data-lucide="arrow-right-left"></i></div>
+                            <h3>Substitutions</h3>
+                            <p>Allergy and cost-saving alternatives.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state hidden">
+                <div class="loading-container">
+                    <div class="loading-spinner"></div>
+                    <div class="cooking-pot-animation">
+                        <i data-lucide="cooking-pot"></i>
+                    </div>
+                    <h3 id="loading-tip-title">Stirring the pots...</h3>
+                    <p id="loading-tip-text">AI is curating your personalized cooking schedule.</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Content (hidden initially) -->
+            <div id="dashboard-content" class="dashboard-content hidden">
+                <!-- Top Status Header -->
+                <header class="dashboard-header">
+                    <div class="header-title">
+                        <h2 id="plan-heading">Today's Active Kitchen Schedule</h2>
+                        <p id="plan-subheading">Active Day Plan</p>
+                    </div>
+                    <div class="header-badges">
+                        <span id="diet-badge" class="badge">Keto</span>
+                        <span id="day-type-badge" class="badge badge-accent">Busy Workday</span>
+                    </div>
+                </header>
+
+                <!-- Summary Status Metrics -->
+                <section class="metrics-grid">
+                    <!-- Calorie Tracker Gauge -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Calories Tracker</h3>
+                            <i data-lucide="flame" class="text-orange"></i>
+                        </div>
+                        <div class="metric-body gauge-body">
+                            <div class="circle-gauge">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                                    <circle id="calorie-progress-circle" class="gauge-progress stroke-orange" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="314.16"></circle>
+                                </svg>
+                                <div class="gauge-text">
+                                    <span id="calories-consumed" class="gauge-val">0</span>
+                                    <span class="gauge-lbl">/ <span id="calories-target">2000</span> kcal</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-footer">
+                            <p id="calorie-status-text">Complete meals to log calories</p>
+                        </div>
+                    </div>
+
+                    <!-- Budget Gauge -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Budget Feasibility</h3>
+                            <i data-lucide="wallet" class="text-green"></i>
+                        </div>
+                        <div class="metric-body budget-body">
+                            <div class="budget-big-number">
+                                <span id="budget-spent" class="spent-val">$0.00</span>
+                                <span class="spent-lbl">est. cost</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div id="budget-progress-bar" class="progress-bar bg-green" style="width: 0%"></div>
+                            </div>
+                            <div class="budget-limits">
+                                <span>Limit: $<span id="budget-limit-display">25.00</span></span>
+                                <span id="budget-status-badge" class="badge badge-success">Under Budget</span>
+                            </div>
+                        </div>
+                        <div class="metric-footer">
+                            <p id="budget-notes-text">AI is evaluating costs...</p>
+                        </div>
+                    </div>
+
+                    <!-- Task Progress Gauge -->
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Cooking To-Do Progress</h3>
+                            <i data-lucide="check-square" class="text-indigo"></i>
+                        </div>
+                        <div class="metric-body progress-body">
+                            <div class="task-stats">
+                                <span id="tasks-ratio" class="stat-number">0/0</span>
+                                <span class="stat-label">Steps Completed</span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div id="tasks-progress-bar" class="progress-bar bg-indigo" style="width: 0%"></div>
+                            </div>
+                            <div class="meals-completed-count">
+                                <span>Meals Prepared:</span>
+                                <span id="meals-completed-ratio" class="font-semibold text-primary">0 / 3</span>
+                            </div>
+                        </div>
+                        <div class="metric-footer">
+                            <p id="tasks-status-text">Ready to start cooking!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Main Grid: Left Meal Cards, Right Grocery & Subs -->
+                <div class="dashboard-grid">
+                    <!-- Column 1: Active Meal To-Do Lists -->
+                    <section class="meals-section">
+                        <h3 class="section-title"><i data-lucide="utensils-cross"></i> Cooking Schedule & Recipe Steps</h3>
+                        <div id="meals-container" class="meals-container">
+                            <!-- Meal Cards are dynamically injected here -->
+                        </div>
+                    </section>
+
+                    <!-- Column 2: Grocery List & Substitutions -->
+                    <section class="sidebar-section">
+                        <!-- Grocery Checklist -->
+                        <div class="sub-section-card">
+                            <div class="section-header-row">
+                                <h3 class="section-title"><i data-lucide="shopping-cart"></i> Grocery List</h3>
+                                <span id="grocery-total-cost" class="badge">Est: $0.00</span>
+                            </div>
+                            <div id="grocery-categories" class="grocery-categories">
+                                <!-- Categorized grocery lists are injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Smart Substitutions -->
+                        <div class="sub-section-card">
+                            <h3 class="section-title"><i data-lucide="arrow-right-left"></i> Smart Substitutions</h3>
+                            <p class="section-desc">Alternatives for allergies, cost savings, or missing pantry items:</p>
+                            <div id="substitutions-list" class="substitutions-list">
+                                <!-- Substitutions are injected here -->
+                            </div>
+
+                            <!-- Interactive Substitution Finder -->
+                            <div class="custom-substitution-finder">
+                                <hr class="card-divider">
+                                <h4>Need another substitution?</h4>
+                                <div class="sub-finder-form">
+                                    <input type="text" id="sub-input-ingredient" placeholder="e.g. Greek Yogurt, Cilantro...">
+                                    <button id="find-sub-btn" class="btn btn-secondary btn-sm" type="button">
+                                        <i data-lucide="search"></i>
+                                    </button>
+                                </div>
+                                <div id="sub-finder-result" class="sub-finder-result hidden">
+                                    <!-- Result gets displayed here -->
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
