@@ -220,6 +220,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .input-with-icon input {
     padding-left: 2.5rem;
+    flex-grow: 1;
+    min-width: 0;
 }
 
 .field-icon {

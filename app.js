@@ -310,6 +310,13 @@ function initUI() {
             lucide.createIcons();
         }
     });
+
+    const resetPlanBtn = document.getElementById("reset-plan-btn");
+    if (resetPlanBtn) {
+        resetPlanBtn.addEventListener("click", () => {
+            clearCache();
+        });
+    }
 }
 
 // Clear all LocalStorage data and reset UI
@@ -332,6 +339,9 @@ function clearCache() {
 
         document.getElementById("dashboard-content").classList.add("hidden");
         document.getElementById("empty-state").classList.remove("hidden");
+
+        const resetBtn = document.getElementById("reset-plan-btn");
+        if (resetBtn) resetBtn.classList.add("hidden");
     }
 }
 
@@ -532,6 +542,9 @@ function renderDashboard() {
     renderGroceryList();
     renderSubstitutions();
     updateProgressMetrics();
+
+    const resetBtn = document.getElementById("reset-plan-btn");
+    if (resetBtn) resetBtn.classList.remove("hidden");
 
     // Re-initialize dynamic icons
     lucide.createIcons();
