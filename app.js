@@ -138,9 +138,9 @@ const demoPlan = {
         }
     ],
     "budgetAnalysis": {
-        "totalEstimatedCost": 29.50,
+        "totalEstimatedCost": 30.00,
         "feasibility": "Under Budget",
-        "notes": "Buying ingredients like hummus, tortillas, and granola provides multiple servings for the week. The cost per day is roughly $13.50, which is well below your $25.00 limit."
+        "notes": "Meal portion costs total ~$13.50/day, well within your $25.00 daily limit. The full grocery shop ($30) buys multi-serving ingredients that last 2-3 days — excellent value!"
     }
 };
 

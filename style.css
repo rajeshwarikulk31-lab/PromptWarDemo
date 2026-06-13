@@ -837,6 +837,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .bg-green { background: linear-gradient(90deg, #34d399, #10b981); }
 .bg-indigo { background: linear-gradient(90deg, #818cf8, #6366f1); }
+.bg-error { background: linear-gradient(90deg, #f87171, #ef4444); }
 
 .budget-limits {
     width: 100%;
