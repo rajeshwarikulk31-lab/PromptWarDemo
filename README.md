@@ -1,2 +1,3 @@
 # PromptWarDemo
-PromtWar Demo 
+PromtWar Demo Challange - A Cooking To Do List
+
